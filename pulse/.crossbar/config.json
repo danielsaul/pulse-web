@@ -41,6 +41,9 @@
                         "ws": {
                             "type": "websocket"
                         }
+                        "lp": {
+                            "type": "longpoll"
+                        }
                     }
                 }
             ]
@@ -55,7 +58,7 @@
             "components": [
                 {
                     "type": "class",
-                    "classname": "hello.AppSession",
+                    "classname": "pulse.PulseBackend",
                     "realm": "realm1",
                     "transport": {
                         "type": "websocket",
