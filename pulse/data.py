@@ -19,10 +19,7 @@ class PulseData():
         songlist = self.r.smembers('songs:all')
         if not asdict:
             return songlist
-        songs = []
-        for song in songlist:
-            song = song.split(':')
-            songs.append({'name':song[0], 'artist':song[1]})
+        songs = [{'name':song.split(':')[0],'artist':song.split(':')[1]} for song in songlist ]
         return songs
 
     def numSongs(self):
@@ -36,11 +33,7 @@ class PulseData():
             key = 'leaderboards:{}:{}'.format(song,artist)
 
         scores = self.r.zrevrange(key, 0, n, withscores=True)
-
-        leaderboard = []
-        for score in scores:
-            leaderboard.append({'player': score[0], 'score': score[1]})
-
+        leaderboard = [{'player': score[0], 'score': score[1]} for score in scores]
         return leaderboard
 
     def clearLeaderboards(self):
