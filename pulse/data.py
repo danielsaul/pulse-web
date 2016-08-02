@@ -13,7 +13,7 @@ class PulseData():
         self.r.sadd('songs:all','{}:{}'.format(name,artist))
    
     def clearSongs(self):
-        self.r.del('songs:all')
+        self.r.delete('songs:all')
 
     def getSongs(self, asdict=True):
         songlist = self.r.smembers('songs:all')
@@ -39,8 +39,8 @@ class PulseData():
     def clearLeaderboards(self):
         songs = getSongs(asdict=False)
         for x in songs:
-            self.r.del('leaderboards:{}'.format(x))
-        self.r.del('leaderboards:all')
+            self.r.delete('leaderboards:{}'.format(x))
+        self.r.delete('leaderboards:all')
 
     def addPlayer(self, name):
         if self.r.zscore('leaderboards:all', name) is None:
@@ -50,20 +50,25 @@ class PulseData():
         self.r.lpush('queue', qn)
         self.r.set('queue:{}'.format(str(qn)), name)
 
+        return qn
+
     def getNextInQueue(self):
         return self.r.rpop('queue')
         
     def getQueuePlayer(self, qn):
         return self.r.get('queue:{}'.format(str(qn)))
 
+    def numQueue(self):
+        return self.r.llen('queue')
+
     def clearQueue(self):
-        self.r.del('queue')
+        self.r.delete('queue')
 
     def addScore(self, qn, score, song, artist):
         player = self.getQueuePlayer(qn)
         self.r.zadd('leaderboards:all', score, player)
         self.r.zadd('leaderboards:{}:{}'.format(song,artist), score, player)
-        self.r.del('queue:{}'.format(qn))
+        self.r.delete('queue:{}'.format(qn))
     
 
     
