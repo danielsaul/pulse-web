@@ -49,7 +49,7 @@ class PulseData():
         qn = self.r.incr('queue:count')
         self.r.lpush('queue', qn)
         
-        self.r.hmset('queue:{}'.format(str(qn)), {'name': name, 'song': song, 'artist': artist)
+        self.r.hmset('queue:{}'.format(str(qn)), {'name': name, 'song': song, 'artist': artist})
 
         return qn
 
@@ -70,6 +70,18 @@ class PulseData():
         self.r.zadd('leaderboards:all', score, player)
         self.r.zadd('leaderboards:{}:{}'.format(song,artist), score, player)
         self.r.delete('queue:{}'.format(qn))
+
+    def getLeaderboardPosition(self, player, song=None, artist=None):
+        if song is None and artist is None:
+            key = 'leaderboards:all'
+        else:
+            key = 'leaderboards:{}:{}'.format(song,artist)
+
+        return self.r.zrevrank(key, player)
+        
+        
+
+
 
     
 
