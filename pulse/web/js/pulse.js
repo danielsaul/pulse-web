@@ -12,6 +12,7 @@ var MainPage = React.createClass({
             : <Message msg="Pulse is not online at the moment. Come back later." />;
         return (
             <div className="list-group">
+                <Bla />
                 {play}
                 <Leaderboards />
             </div>
@@ -101,21 +102,17 @@ var SelectLeaderboard = React.createClass({
 });
 
 var Leaderboards = React.createClass({
-    getInitialState: function(){
+    /*getInitialState: function(){
         return {
             open: true
         };
-    },
+    },*/
 
-    handleClick: function(e){
-        //e.preventDefault();
+    handleTheClick: function(){
         console.log("test");
-        //this.setState({open: !this.state.open});
-        //console.log(this.state.open);
-        //return false;
     },
 
-    render: function() {
+/*    render: function() {
 
         console.log("Render");
         var chevron = this.state.open ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right';
@@ -132,9 +129,23 @@ var Leaderboards = React.createClass({
                 {content}
             </div>
         );
-    }
+    }*/
+
+        render: function() {
+            return ( <button onClick={this.handleTheClick}>test</button> );
+        }
 });
 
+var Bla = React.createClass({
+    handleClick: function(){
+        console.log("test");
+    },
+    render: function() {
+        return (
+            <div onClick={this.handleClick}>Bla</div>
+        );
+    }
+});
 
 
 var ChooseSongFormRow = React.createClass({
