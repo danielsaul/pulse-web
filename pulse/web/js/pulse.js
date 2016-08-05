@@ -1,10 +1,29 @@
 
 
 var MainPage = React.createClass({
-    render: function() {
-        var gameRunning = true;
+    getInitialState: function(){
+        return {enabled: false};
+    },
 
-        var play = gameRunning ?
+    componentWillMount: function(){
+        connection.session.call("com.emfpulse.enabled.get").then(
+            function(enabled){
+                this.setState({enabled: enabled});
+            }.bind(this)
+        );
+    },
+
+    componentDidMount: function(){
+        connection.session.subscribe("com.emfpulse.enabled.status", this.enableUpdate);
+    },
+
+    enableUpdate: function(data){
+        this.setState({enabled: data[0]});
+    },
+
+    render: function() {
+
+        var play = this.state.enabled ?
                 <div>
                     <CurrentlyPlaying />
                     <PlayQueue />
@@ -19,6 +38,38 @@ var MainPage = React.createClass({
     }
 });
 
+var AdminPage = React.createClass({
+    getInitialState: function(e){
+        return {pwd: ''};
+    },
+
+    handlePwdChange: function(e){
+        this.setState({pwd: e.target.value});
+    },
+
+    handleToggleEnable: function(){
+        connection.session.call("com.emfpulse.enabled.set", [this.state.pwd]);
+    },
+
+    handleClearQueue: function(){
+        connection.session.call("com.emfpulse.queue.clear", [this.state.pwd]);
+    },
+
+    handleClearLeaderboards: function(){
+        connection.session.call("com.emfpulse.leaderboards.clear", [this.state.pwd]);
+    },
+
+    render: function() {
+        return (
+            <div className="list-group">
+                <div className="list-group-item"><input type="text" className="form-control" placeholder="Password" onChange={this.handlePwdChange} value={this.state.pwd}/></div>
+                <button className="list-group-item" onClick={this.handleToggleEnable}>Toggle Enable</button>
+                <button className="list-group-item" onClick={this.handleClearQueue}>Clear Queue</button>
+                <button className="list-group-item" onClick={this.handleClearLeaderboards}>Clear Leaderboards</button>
+            </div>
+        );
+    }
+});
 
 var Message = React.createClass({
     render: function() {
@@ -47,11 +98,6 @@ var LeaderboardTableRow = React.createClass({
 
 var LeaderboardTable = React.createClass({
     render: function() {
-
-        var leaderboard = [
-            {'n': 1, 'player': 'luasdan', 'score': 454583},
-            {'n': 2, 'player': 'Andy', 'score': 23}
-        ];
 
         var rows = [];
         this.props.leaderboard.forEach(function(row) {
@@ -135,6 +181,7 @@ var Leaderboards = React.createClass({
     },
 
     leaderboardUpdate: function(data) {
+        console.log(data);
         if(this.state.selectedsong == 'all' && data[0].song == null){
             this.setState({leaderboard: data[0].leaderboard});
         }else if(this.state.selectedsong.song == data[0].song && this.state.selectedsong.artist == data[0].artist){
@@ -243,7 +290,7 @@ var GetNameForm = React.createClass({
         this.setState({text: e.target.value});
     },
     handleButton: function(e){
-        var text = this.state.text.trim();
+        var text = this.state.text.trim().replace(/[^\x20-\x7E]+/g, '');
         if(!text){ return; }
         this.props.onBtn(text);
     },
@@ -279,7 +326,20 @@ var PlayQueue = React.createClass({
         };
     },
     componentWillMount: function() {
+
+        var qn = localStorage.getItem('qn');
+        if (qn && qn > this.state.nextup){
+           connection.session.call("com.emfpulse.queue.getinfo", [qn]).then(
+               function(data) {
+                   data.qn = qn; 
+                   this.setState(data);
+                   console.log(data);
+
+               }.bind(this));
+        }
+
         this.manualUpdate();
+        
     },
     componentWillReceiveProps: function() {
         this.manualUpdate();
@@ -291,11 +351,13 @@ var PlayQueue = React.createClass({
 
     subscribeState: function(data){
         this.setState(data[0]);
-        console.log(data);
-        console.log(this.state);
-        if(this.state.qn != null && this.state.qn < this.state.nextup){
+       console.log(data[0]);
+       console.log(this.state);
+        if((this.state.qn != null && this.state.qn < this.state.nextup)||(this.state.queue_total == 0 && this.state.qn != null)){
             this.setState({player_name: null, song: null, qn: null});
+            localStorage.setItem('qn', null);
         }
+
 
     },
     
@@ -303,9 +365,10 @@ var PlayQueue = React.createClass({
        connection.session.call("com.emfpulse.queue.status").then(
             function(res){
                 this.setState(res);
-            if(this.state.qn < this.state.nextup){
-                this.setState({player_name: null, song: null, qn: null});
-            }
+                if((this.state.qn != null && this.state.qn < this.state.nextup)||(this.state.queue_total == 0 && this.state.qn != null)){
+                    this.setState({player_name: null, song: null, qn: null});
+                    localStorage.setItem('qn', null);
+                }
                 console.log(res);
         }.bind(this));
     },
@@ -318,7 +381,8 @@ var PlayQueue = React.createClass({
         this.setState({song: song});
         connection.session.call("com.emfpulse.queue.new", [this.state.player_name, song.artist, song.name]).then(
             function(res){
-                this.setState({qn: res});
+                this.setState({'qn': res});
+                localStorage.setItem('qn', res);
                 console.log(res);
         }.bind(this),
             function(err){
@@ -436,11 +500,21 @@ var connection = new autobahn.Connection({
 });
 
 connection.onopen = function(session){
-    console.log("Connected"); 
+    console.log("Connected");
+
+    if(window.location.hash == "#admin"){
+        ReactDOM.render(
+                <AdminPage />,
+                document.getElementById('main')
+            );
+    }else{
+
     ReactDOM.render(
             <MainPage />,
             document.getElementById('main')
         );
+
+    }
 
 }
 

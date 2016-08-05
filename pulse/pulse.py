@@ -50,7 +50,7 @@ class PulseBackend(ApplicationSession):
 
         self.enabled = False
 
-        self.currentqn = 100
+        self.currentqn = int(self.d.queueCount()) 
         self.current = {
                 'isplaying': False,
                 'player': None,
@@ -89,6 +89,7 @@ class PulseBackend(ApplicationSession):
         self.log.info("Number in Queue: {}".format(self.d.numQueue()))
         return queue_number
 
+
     @wamp.register(u'com.emfpulse.queue.status')
     def getQueueStatus(self):
         return {'queue_total': self.d.numQueue(), 'nextup': self.currentqn}
@@ -101,12 +102,17 @@ class PulseBackend(ApplicationSession):
         self.publish('com.emfpulse.queue', {'queue_total': self.d.numQueue(), 'nextup': qn})
         return qn
 
-    @wamp.register(u'com.emfpulse.queue.getinfo')
-    def getPlayerInfo(self, qn):
+    @wamp.register(u'com.emfpulse.queue.getnextinfo')
+    def getNextPlayerInfo(self, qn):
         self.current = self.d.getQueuePlayer(qn)
-        self.log.info("Now Playing: {} {}, {} - {}".format(qn, self.current['name'], self.current['artist'], self.current['name']))
+        self.log.info("Now Playing: {} {}, {} - {}".format(qn, self.current['player'], self.current['artist'], self.current['song']))
         self.publish('com.emfpulse.current', self.current)
         return self.current
+
+    @wamp.register(u'com.emfpulse.queue.getinfo')
+    def getPlayerInfo(self, qn):
+        info = self.d.getQueuePlayer(qn)
+        return {'player_name': info['player'], 'song': {'name': info['song'], 'artist': info['artist']}};
 
     @wamp.register(u'com.emfpulse.playstatus.get')
     def getCurrentlyPlaying(self):
@@ -137,13 +143,28 @@ class PulseBackend(ApplicationSession):
     def getEnabled(self):
         return self.enabled
 
-    @wamp.subscribe(u'com.emfpulse.enabled.set')
-    def setEnabled(self, pwd, status):
+    @wamp.register(u'com.emfpulse.enabled.set')
+    def setEnabled(self, pwd):
         if pwd == s.ADMIN_PASSWORD:
-            self.enabled = status
-            self.publish('com.emfpulse.enabled.status', status)
+            self.enabled = not self.enabled
+            self.publish('com.emfpulse.enabled.status', self.enabled)
+            self.log.info("Enabled: {}".format(self.enabled))
+    
+    @wamp.register(u'com.emfpulse.queue.clear')
+    def clearQueue(self, pwd):
+        if pwd == s.ADMIN_PASSWORD:
+            self.d.clearQueue()
+            self.currentqn = int(self.d.queueCount())
+            self.publish('com.emfpulse.queue', {'queue_total': self.d.numQueue(), 'nextup': self.currentqn})
+            self.log.info("Queue cleared")
 
-        
+    @wamp.register(u'com.emfpulse.leaderboards.clear')
+    def clearLeaderboards(self, pwd):
+        if pwd == s.ADMIN_PASSWORD:
+            self.d.clearLeaderboards()
+            self.publish('com.emfpulse.leaderboards.update', {'song': None, 'artist': None, 'leaderboard': []})
+            self.log.info("Leaderboards cleared")
+    
 
     @inlineCallbacks
     def onJoin(self, details):

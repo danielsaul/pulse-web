@@ -37,7 +37,7 @@ class PulseData():
         return leaderboard
 
     def clearLeaderboards(self):
-        songs = getSongs(asdict=False)
+        songs = self.getSongs(asdict=False)
         for x in songs:
             self.r.delete('leaderboards:{}'.format(x))
         self.r.delete('leaderboards:all')
@@ -49,7 +49,7 @@ class PulseData():
         qn = self.r.incr('queue:count')
         self.r.lpush('queue', qn)
         
-        self.r.hmset('queue:{}'.format(str(qn)), {'name': name, 'song': song, 'artist': artist})
+        self.r.hmset('queue:{}'.format(str(qn)), {'player': name, 'song': song, 'artist': artist})
 
         return qn
 
@@ -61,6 +61,9 @@ class PulseData():
 
     def numQueue(self):
         return self.r.llen('queue')
+
+    def queueCount(self):
+        return self.r.get('queue:count')
 
     def clearQueue(self):
         self.r.delete('queue')
