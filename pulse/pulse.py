@@ -50,7 +50,7 @@ class PulseBackend(ApplicationSession):
 
         self.enabled = False
 
-        self.currentqn = 101
+        self.currentqn = 100
         self.current = {
                 'isplaying': False,
                 'player': None,
@@ -85,7 +85,7 @@ class PulseBackend(ApplicationSession):
         queue_number = self.d.addPlayer(name, song_name, song_artist)
         self.log.info("New Player In Queue: {} {}, {} - {}".format(queue_number, name, song_artist, song_name))
         
-        self.publish('com.emfpulse.queue', {'queue_total': self.d.numQueue()})
+        self.publish('com.emfpulse.queue', {'queue_total': self.d.numQueue(), 'nextup': self.currentqn})
         self.log.info("Number in Queue: {}".format(self.d.numQueue()))
         return queue_number
 
