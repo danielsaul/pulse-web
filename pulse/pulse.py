@@ -50,12 +50,12 @@ class PulseBackend(ApplicationSession):
 
         self.enabled = False
 
-        self.currentqn = None
+        self.currentqn = 101
         self.current = {
-                'name': None,
+                'isplaying': False,
+                'player': None,
                 'song': None,
                 'artist': None}
-        self.playing = False
 
         return
 
@@ -69,7 +69,8 @@ class PulseBackend(ApplicationSession):
     
     @wamp.register(u'com.emfpulse.songs.get')
     def getSongsList(self):
-        return self.d.getSongs()
+        return {'songs': [{'name': 'Test', 'artist': 'two'}]}
+        return {'songs': self.d.getSongs()}
 
     @wamp.register(u'com.emfpulse.leaderboards.getforsong')
     def getLeaderboardForSong(self, song, artist):
@@ -81,31 +82,34 @@ class PulseBackend(ApplicationSession):
 
     @wamp.register(u'com.emfpulse.queue.new')
     def addNewPlayerToQueue(self, name, song_name, song_artist):
-        queue_number = self.d.addPlayer(name)
+        queue_number = self.d.addPlayer(name, song_name, song_artist)
         self.log.info("New Player In Queue: {} {}, {} - {}".format(queue_number, name, song_artist, song_name))
         
-        self.publish('com.emfpulse.queue.lenchange', self.d.numQueue())
+        self.publish('com.emfpulse.queue', {'queue_total': self.d.numQueue()})
         self.log.info("Number in Queue: {}".format(self.d.numQueue()))
         return queue_number
 
     @wamp.register(u'com.emfpulse.queue.status')
     def getQueueStatus(self):
-        return {'length': self.d.numQueue(), 'currentqn': self.currentqn}
+        return {'queue_total': self.d.numQueue(), 'nextup': self.currentqn}
 
     @wamp.register(u'com.emfpulse.queue.next')
     def getNextInQueue(self):
         qn = self.d.getNextInQueue()
         self.currentqn = qn
         self.log.info("Next up: {}".format(qn))
-        self.publish('com.emfpulse.queue.nextup', qn)
-        self.publish('com.emfpulse.queue.lenchange', self.d.numQueue())
+        self.publish('com.emfpulse.queue', {'queue_total': self.d.numQueue(), 'nextup': qn})
         return qn
 
     @wamp.register(u'com.emfpulse.queue.getinfo')
-    def getCurrentPlayerInfo(self, qn):
+    def getPlayerInfo(self, qn):
         self.current = self.d.getQueuePlayer(qn)
         self.log.info("Now Playing: {} {}, {} - {}".format(qn, self.current['name'], self.current['artist'], self.current['name']))
         self.publish('com.emfpulse.current', self.current)
+        return self.current
+
+    @wamp.register(u'com.emfpulse.playstatus.get')
+    def getCurrentlyPlaying(self):
         return self.current
 
     @wamp.register(u'com.emfpulse.play.endgame')
@@ -126,7 +130,8 @@ class PulseBackend(ApplicationSession):
 
     @wamp.register(u'com.emfpulse.playstatus.set')
     def setPlayStatus(self, status, song_name=None, song_artist=None):
-        self.playing = status
+        self.current['isplaying'] = status
+        self.publish('com.emfpulse.current', self.current)
 
     @wamp.register(u'com.emfpulse.enabled.get')
     def getEnabled(self):

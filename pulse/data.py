@@ -33,7 +33,7 @@ class PulseData():
             key = 'leaderboards:{}:{}'.format(song,artist)
 
         scores = self.r.zrevrange(key, 0, n, withscores=True)
-        leaderboard = [{'player': score[0], 'score': score[1]} for score in scores]
+        leaderboard = [{'n': i+1, 'player': score[0], 'score': score[1]} for i,score in enumerate(scores)]
         return leaderboard
 
     def clearLeaderboards(self):

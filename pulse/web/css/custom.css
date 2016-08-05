@@ -1,0 +1,70 @@
+.list-group{
+    font-size: 16px;
+}
+
+.song-select{
+    font-size: 14px;
+}
+
+.txt{
+    font-size: 14px;
+}
+
+.centre{
+    text-align: center;
+}
+
+.red{
+    color: red;
+}
+
+.list-group-item.dark{
+    background-color: #00639c;
+    border-color: #00639c;
+    color: #ffffff;
+}
+.list-group-item.darker{
+    background-color: #005688;
+    border-color: #005688;
+    color: #ffffff;
+}
+
+.glyphicon{
+    padding-right: 10px;
+}
+
+.btn .glyphicon{
+    padding: 0px;
+}
+
+.small{
+    opacity: 0.8;
+}
+
+.noborder{
+    border: 0;
+}
+
+.leaderboard{
+    margin-top: 20px;
+}
+
+.no-dec, .no-dec:hover, .no-dec:visited, .no-dec:active{
+    color: #555;
+    text-decoration: none;
+}
+
+/*input{
+    padding: 5px;
+    background: none;
+    border: 1px solid
+}*/
+
+.form-inline-force .form-control{
+    display: inline-block;
+    width: auto;
+    vertical-align: middle;
+    margin: 10px 0 10px 0;
+    border: 0;
+    height: auto;
+}
