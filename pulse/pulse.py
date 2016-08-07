@@ -125,12 +125,16 @@ class PulseBackend(ApplicationSession):
         allldrbrd = self.d.getLeaderboard(10)
         self.publish('com.emfpulse.leaderboards.update', {'song': None, 'artist': None, 'leaderboard': allldrbrd})
         self.publish('com.emfpulse.leaderboards.update', {'song': self.current['song'], 'artist': self.current['artist'], 'leaderboard': songldrbrd})
-        
+       
         if self.d.getLeaderboardPosition(self.current['player']) == 0:
             self.t.update_status(status='{} has set a new overall highscore of {} #emfcamp'.format(self.current['player'], score))
+
+        hiscore = False
         if self.d.getLeaderboardPosition(self.current['player'], song=self.current['song'], artist=self.current['artist']) == 0:
+            hiscore = True
             self.t.update_status(status='{} has set a new highscore of {} for {} - {} #emfcamp'.format(self.current['player'], score, self.current['artist'], self.current['song']))
 
+        return hiscore
 
 
     @wamp.register(u'com.emfpulse.playstatus.set')
