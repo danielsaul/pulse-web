@@ -347,25 +347,36 @@ var PlayQueue = React.createClass({
 
     componentDidMount: function() {
         connection.session.subscribe("com.emfpulse.queue", this.subscribeState);
+        connection.session.subscribe("com.emfpulse.queue.toolate", this.tooLate);
     },
 
     subscribeState: function(data){
         this.setState(data[0]);
        console.log(data[0]);
        console.log(this.state);
-        if((this.state.qn != null && this.state.qn < this.state.nextup)||(this.state.queue_total == 0 && this.state.qn != null)){
+        if((this.state.qn != null && this.state.qn < this.state.nextup)/*||(this.state.queue_total == 0 && this.state.qn != null)*/){
             this.setState({player_name: null, song: null, qn: null});
             localStorage.setItem('qn', null);
         }
 
 
     },
-    
+ 
+    tooLate: function(data){
+       console.log(data[0]);
+       if(data[0] == this.state.qn){
+            this.setState({player_name: null, song: null, qn: null});
+            localStorage.setItem('qn', null);
+        }
+
+
+    },
+   
     manualUpdate: function() {
        connection.session.call("com.emfpulse.queue.status").then(
             function(res){
                 this.setState(res);
-                if((this.state.qn != null && this.state.qn < this.state.nextup)||(this.state.queue_total == 0 && this.state.qn != null)){
+                if((this.state.qn != null && this.state.qn < this.state.nextup)/*||(this.state.queue_total == 0 && this.state.qn != null)*/){
                     this.setState({player_name: null, song: null, qn: null});
                     localStorage.setItem('qn', null);
                 }
@@ -379,10 +390,11 @@ var PlayQueue = React.createClass({
 
     handleSongChoice: function(song){
         this.setState({song: song});
-        connection.session.call("com.emfpulse.queue.new", [this.state.player_name, song.artist, song.name]).then(
+        connection.session.call("com.emfpulse.queue.new", [this.state.player_name, song.name, song.artist]).then(
             function(res){
                 this.setState({'qn': res});
                 localStorage.setItem('qn', res);
+
                 console.log(res);
         }.bind(this),
             function(err){
@@ -470,7 +482,6 @@ var CurrentlyPlaying = React.createClass({
             <div>
                 <b>{this.state.player}</b><br/>
                 {this.state.artist} - {this.state.song}<br/>
-                Score: {this.state.score}
             </div> : "";
         return (
             <div className="list-group-item active centre">
@@ -495,7 +506,7 @@ var Glyphicon = React.createClass({
 
 
 var connection = new autobahn.Connection({
-    url: "ws://emfpulse.com:8080/ws",
+    url: "ws://emfpulse.com:12345/ws",
     realm: "realm1"
 });
 

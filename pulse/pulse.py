@@ -69,7 +69,6 @@ class PulseBackend(ApplicationSession):
     
     @wamp.register(u'com.emfpulse.songs.get')
     def getSongsList(self):
-        return {'songs': [{'name': 'Test', 'artist': 'two'}]}
         return {'songs': self.d.getSongs()}
 
     @wamp.register(u'com.emfpulse.leaderboards.getforsong')
@@ -127,9 +126,9 @@ class PulseBackend(ApplicationSession):
         self.publish('com.emfpulse.leaderboards.update', {'song': None, 'artist': None, 'leaderboard': allldrbrd})
         self.publish('com.emfpulse.leaderboards.update', {'song': self.current['song'], 'artist': self.current['artist'], 'leaderboard': songldrbrd})
         
-        if getLeaderboardPosition(self.current['name']) == 0:
+        if self.d.getLeaderboardPosition(self.current['name']) == 0:
             self.t.update_status(status='{} has set a new overall highscore of {} #emfcamp'.format(self.current['name'], score))
-        if getLeaderboardPosition(self.current['name'], song=self.current['song'], artist=self.current['artist']) == 0:
+        if self.d.getLeaderboardPosition(self.current['name'], song=self.current['song'], artist=self.current['artist']) == 0:
             self.t.update_status(status='{} has set a new highscore of {} for {} - {} #emfcamp'.format(self.current['name'], score, self.current['artist'], self.current['song']))
 
 
