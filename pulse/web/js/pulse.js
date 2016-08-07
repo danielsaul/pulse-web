@@ -128,7 +128,6 @@ var SelectLeaderboardItem = React.createClass({
 var SelectLeaderboard = React.createClass({
 
     handleChange: function(e) {
-        this.setState({selectedsong: e.target.value});
         this.props.handleChange(e.target.value);
     },
 
@@ -136,7 +135,6 @@ var SelectLeaderboard = React.createClass({
         
         var options = [];
         this.props.songs.forEach(function(song,i) {
-            var key = song.artist + ' : ' + song.name
             options.push(<SelectLeaderboardItem key={i} i={i} song={song} />);
         }.bind(this));
 
@@ -195,6 +193,7 @@ var Leaderboards = React.createClass({
     },
 
     handleSelectChange: function(i) {
+        console.log(i)
         if(i == 'all'){
             this.setState({selectedsong: 'all'});
             connection.session.call("com.emfpulse.leaderboards.getall").then(
@@ -205,7 +204,7 @@ var Leaderboards = React.createClass({
         }else{
             var song = this.state.songs[i];
             this.setState({selectedsong: song});
-            connection.session.call("com.emfpulse.leaderboards.getforsong", [this.state.selectedsong.name, this.state.selectedsong.artist]).then(
+            connection.session.call("com.emfpulse.leaderboards.getforsong", [song.name, song.artist]).then(
                 function(res){
                     this.setState({leaderboard: res});
                     console.log(res);
@@ -300,7 +299,7 @@ var GetNameForm = React.createClass({
                 <input
                     type="text"
                     className="form-control"
-                    placeholder="Enter a nickname"
+                    placeholder="Enter a unique nickname"
                     value={this.state.text}
                     onChange={this.handleTextChange}
                 />
@@ -464,6 +463,7 @@ var CurrentlyPlaying = React.createClass({
     },
 
     subscribeState: function(data) {
+        console.log(data);
         this.setState(data[0]);
     },
     
@@ -477,6 +477,7 @@ var CurrentlyPlaying = React.createClass({
 
     render: function() {
 
+        //var score = this.state.score != 0 ? <span>Score {this.state.score}</span> : "";
         var title = this.state.isplaying ? "Currently Playing" : "Nobody Playing";
         var info = this.state.isplaying ? 
             <div>
