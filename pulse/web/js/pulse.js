@@ -507,7 +507,18 @@ var Glyphicon = React.createClass({
 
 
 var connection = new autobahn.Connection({
-    url: "ws://emfpulse.com:12345/ws",
+    /*url: "ws://emfpulse.com:12345/ws",*/
+    transports: [
+        {
+            'type': 'websocket',
+            'url': 'ws://emfpulse.com:12345/ws'
+        },
+        {
+            'type': 'longpoll',
+            'url': 'http://emfpulse.com/wamp/lp'
+        }
+
+    ],
     realm: "realm1"
 });
 
