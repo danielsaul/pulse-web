@@ -308,7 +308,7 @@ var GetNameForm = React.createClass({
                     onClick={this.handleButton}
                 >
                     <Glyphicon icon='glyphicon-circle-arrow-right' />
-                </button>
+                </button><br/>Tip: use a twitter username with @ for high score mention
             </div>
         );
     }
@@ -509,13 +509,13 @@ var Glyphicon = React.createClass({
 var connection = new autobahn.Connection({
     /*url: "ws://emfpulse.com:12345/ws",*/
     transports: [
-        {
+        /*{
             'type': 'websocket',
             'url': 'ws://emfpulse.com:12345/ws'
-        },
+        },*/
         {
             'type': 'longpoll',
-            'url': 'http://emfpulse.com/wamp/lp'
+            'url': 'http://'+document.location.host+'/wamp/lp'
         }
 
     ],

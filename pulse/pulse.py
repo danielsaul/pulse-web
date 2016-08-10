@@ -134,7 +134,6 @@ class PulseBackend(ApplicationSession):
             hiscore = True
             self.t.update_status(status='{} has set a new highscore of {} for {} - {} #emfcamp'.format(self.current['player'], score, self.current['artist'], self.current['song']))
 
-        return hiscore
 
 
     @wamp.register(u'com.emfpulse.playstatus.set')
