@@ -70,8 +70,10 @@ class PulseData():
 
     def addScore(self, qn, score, song, artist):
         player = self.getQueuePlayer(qn)
-        self.r.zadd('leaderboards:all', score, player['player'])
-        self.r.zadd('leaderboards:{}:{}'.format(song,artist), score, player['player'])
+        if self.r.zscore('leaderboards:all', player['player']) < score:
+            self.r.zadd('leaderboards:all', score, player['player'])
+        if self.r.zscore('leaderboards:{}:{}'.format(song,artist), player['player']) < score:
+            self.r.zadd('leaderboards:{}:{}'.format(song,artist), score, player['player'])
         self.r.delete('queue:{}'.format(qn))
 
     def getLeaderboardPosition(self, player, song=None, artist=None):
